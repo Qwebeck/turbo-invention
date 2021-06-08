@@ -7,20 +7,21 @@ namespace PythonInterpreter
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            while(true)
+            var interpreter = new Interpreter();
+            while (true)
             {
-
+                Console.Write(">>");
+                var input = Console.ReadLine();
+                var stream = new AntlrInputStream(input);
+                var lexer = new PythonInterpreterLexer(stream);
+                var tokens = new CommonTokenStream(lexer);
+                var parser = new PythonInterpreterParser(tokens);
+                var programParseTree = parser.program();
+                interpreter.Visit(programParseTree);
             }
-            //var equation = Console.ReadLine();
-            //var stream = new AntlrInputStream(equation);
-            //var lexer = new PythonInterpreterLexer(stream);
-            //var tokens = new CommonTokenStream(lexer);
-            //var parser = new PythonInterpreterParser(tokens);
-            //var parseTree = parser.equation();
-            //var result = new AdditionParsing().Visit(parseTree);
-            //Console.WriteLine(result);
+           
         }
     }
 }

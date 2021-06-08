@@ -2,7 +2,8 @@ grammar PythonInterpreter;
 
 // parser
 
-program : function_definition* statement
+
+program : ((function_definition | statement | library_func) NEW_LINE)+ EOF
         ;
 
 function_definition : function_signature function_body
@@ -11,9 +12,12 @@ function_definition : function_signature function_body
 function_signature : 'def' ID '(' parameters ')' ':'
                    ;
 
-parameters : ID ',' parameters
-           | ID?
+parameters : ID (',' ID)*
            ;
+
+arguments : (INT | STR | ID) ? (',' (INT | STR | ID)?)*
+          ;
+
 function_body : statement_list 'end'
               | statement_list 'return' statement 'end'
               ;
@@ -51,9 +55,7 @@ decrement : '--' INT
 function_call_statement : ID '(' arguments ')'
                         ;
 
-arguments : LITERAL ',' arguments
-          | LITERAL?
-          ;
+
 
 
 if_statement : 'if' condition ':' statement_list 'end'
@@ -63,31 +65,45 @@ if_statement : 'if' condition ':' statement_list 'end'
 condition : expression COMPARISON_OPERATOR expression
           ;
 
-math_statement : NUMBER '+' math_statement
-               | NUMBER '-' math_statement
-               | NUMBER
+math_statement : INT '+' math_statement
+               | INT '-' math_statement
+               | INT
                ;
 
+
+// library functions
+library_func : print_func
+             | max_func
+             | min_func
+             | range_func
+             ;
+
+print_func : 'print' '(' arguments ')'
+           ;
+
+max_func : 'max' '(' arguments ')'
+           ;
+
+min_func : 'min' '(' arguments ')'
+           ;
+
+range_func : 'range' '(' INT ',' INT ')'
+           ;
+
 //lexer
-NEW_LINE : '\n'
+NEW_LINE : '\r'?'\n' 
          ;
-ID : [A-Za-z_][A-Za-z_0-9]*
+         
+ID : [a-zA-Z_] [a-zA-Z_0-9]*
    ;
 
-INT : [0-9]+
+INT : [0-9]+(.[0-9])*
     ;
 
-DECIMAL : [0-9]+.[0-9]
-      ;
 
 STR : '"' .*? '"'
     ;
 
-LITERAL : (INT | STR | ID)
-                 ;
-
-NUMBER : (INT | DECIMAL)
-                ;
 
 COMPARISON_OPERATOR :  '=='
                     |  '<='
