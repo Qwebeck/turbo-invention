@@ -3,7 +3,7 @@ grammar PythonInterpreter;
 // parser
 
 
-program : ((function_definition | statement | library_func) NEW_LINE)+ EOF
+program : ((function_definition | statement) NEW_LINE)+ EOF
         ;
 
 function_definition : function_signature function_body
@@ -18,12 +18,10 @@ parameters : ID (',' ID)*
 arguments : (INT | STR | ID) ? (',' (INT | STR | ID)?)*
           ;
 
-function_body : statement_list 'end'
-              | statement_list 'return' statement 'end'
+function_body : statement_list (RETURN statement)? 'end'
               ;
 
-statement_list : statement NEW_LINE statement_list
-		       | statement
+statement_list : statement (NEW_LINE statement)* 
                ;
 
 statement : assignment_statement
@@ -52,17 +50,17 @@ decrement : '--' INT
           | INT '--'
           ;
 
-function_call_statement : ID '(' arguments ')'
+function_call_statement : library_func
+                        | ID '(' arguments ')'
                         ;
 
 
 
 
-if_statement : 'if' condition ':' statement_list 'end'
-             | 'if' condition ':' statement_list 'else' if_statement
+if_statement : 'if' WS* condition WS* ':' WS* statement_list WS* (ELSE statement_list)? WS* END
              ;
 
-condition : expression COMPARISON_OPERATOR expression
+condition : expression (COMPARISON_OPERATOR expression)?
           ;
 
 math_statement : INT '+' math_statement
@@ -91,6 +89,23 @@ range_func : 'range' '(' INT ',' INT ')'
            ;
 
 //lexer
+ELSE : 'else'
+     ;
+
+END : 'end'
+    ;
+
+RETURN : 'return'
+       ;
+
+COMPARISON_OPERATOR :  '=='
+                    |  '<='
+                    |  '>='
+                    |  '>'
+                    |  '<'
+                    |  '!='
+                    ; 
+
 NEW_LINE : '\r'?'\n' 
          ;
          
@@ -104,11 +119,4 @@ INT : [0-9]+(.[0-9])*
 STR : '"' .*? '"'
     ;
 
-
-COMPARISON_OPERATOR :  '=='
-                    |  '<='
-                    |  '>='
-                    |  '>'
-                    |  '<'
-                    |  '!='
-                    ; 
+WS : ' ' -> skip;
