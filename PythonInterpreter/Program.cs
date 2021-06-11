@@ -10,10 +10,20 @@ namespace PythonInterpreter
         static void Main()
         {
             var interpreter = new Interpreter();
+            var isFile = false;
+            var input = string.Empty;
+
             while (true)
             {
-                Console.Write(">>");
-                var input = Console.ReadLine();
+                isFile = MenuHelper.InputType();
+                if (isFile)
+                    input = MenuHelper.GetFile();
+                else
+                {
+                    Console.Write(">>");
+                    input = Console.ReadLine();
+                }
+
                 var stream = new AntlrInputStream(input);
                 var lexer = new PythonInterpreterLexer(stream);
                 var tokens = new CommonTokenStream(lexer);
