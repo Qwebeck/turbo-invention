@@ -88,6 +88,39 @@ namespace PythonInterpreter
             }
             return SUCCESS_EXIT_CODE;
         }
+
+        #region Math
+        public override int VisitAdditionStatement([NotNull] PythonInterpreterParser.AdditionStatementContext context)
+        {
+            var statement = context.math_statement();
+            var left = statement[0];
+            var right = statement[1];
+            return context.PLUS() == null 
+                ? base.Visit(left) - base.Visit(right)
+                : base.Visit(left) + base.Visit(right);
+        }
+
+        public override int VisitMultiplicationStatement([NotNull] PythonInterpreterParser.MultiplicationStatementContext context)
+        {
+            var statement = context.math_statement();
+            var left = statement[0];
+            var right = statement[1];
+            return context.TIMES() == null
+                ? base.Visit(left) / base.Visit(right)
+                : base.Visit(left) * base.Visit(right);
+        }
+
+        public override int VisitFactor([NotNull] PythonInterpreterParser.FactorContext context)
+        {
+            return int.Parse(context.INT().GetText());
+        }
+
+        public override int VisitParenthesedStatemet([NotNull] PythonInterpreterParser.ParenthesedStatemetContext context)
+        {
+            var statement = context.math_statement();
+            return base.Visit(statement);
+        }
+        #endregion
         #endregion
 
 

@@ -84,7 +84,8 @@ namespace PythonInterpreter
             var tokens = new CommonTokenStream(lexer);
             var parser = new PythonInterpreterParser(tokens);
             var programParseTree = parser.program();
-            interpreter.Visit(programParseTree);
+            var result = interpreter.Visit(programParseTree);
+            Console.WriteLine(result);
         }
     }
 }

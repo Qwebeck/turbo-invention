@@ -9,7 +9,7 @@ program : ((function_definition | statement) NEW_LINE+)+ EOF
 function_definition : function_signature NEW_LINE function_body
                     ;
 
-function_signature : DEF WS* ID '(' parameters ')' ':'
+function_signature : DEF WS* ID LPAREN parameters RPAREN ':'
                    ;
 
 parameters : ID (',' ID)*
@@ -51,7 +51,7 @@ decrement : '--' INT
           ;
 
 function_call_statement : library_func
-                        | ID '(' arguments ')'
+                        | ID LPAREN arguments RPAREN
                         ;
 
 
@@ -63,13 +63,11 @@ if_statement : 'if' WS* condition WS* ':' WS* statement_list WS* (ELSE statement
 condition : expression (COMPARISON_OPERATOR expression)?
           ;
 
-math_statement : INT '+' math_statement
-               | INT '-' math_statement
-               | INT '*' math_statement
-               | INT '/' math_statement
-               | INT
+math_statement : math_statement WS* (TIMES | DIV) WS* math_statement #MultiplicationStatement
+               | math_statement WS* (PLUS | MINUS) WS* math_statement #AdditionStatement
+               | LPAREN WS* math_statement WS* RPAREN #ParenthesedStatemet
+               | (PLUS | MINUS)* INT #Factor
                ;
-
 
 // library functions
 library_func : print_func
@@ -78,16 +76,16 @@ library_func : print_func
              | range_func
              ;
 
-print_func : 'print' '(' arguments ')'
+print_func : 'print' LPAREN arguments RPAREN
            ;
 
-max_func : 'max' '(' arguments ')'
+max_func : 'max' LPAREN arguments RPAREN
            ;
 
-min_func : 'min' '(' arguments ')'
+min_func : 'min' LPAREN arguments RPAREN
            ;
 
-range_func : 'range' '(' INT ',' INT ')'
+range_func : 'range' LPAREN INT ',' INT RPAREN
            ;
 
 //lexer
@@ -113,12 +111,33 @@ END      : 'end'
 
 NEW_LINE : '\r'?'\n' 
          ;
+
+LPAREN   : '('
+         ;
+
+RPAREN   : ')'
+         ;
          
 ID : [a-zA-Z_] [a-zA-Z_0-9]*
    ;
 
-INT : [0-9]+(.[0-9])*
+
+
+PLUS : '+'
+     ;
+
+MINUS : '-'
+      ;
+
+TIMES : '*'
+      ;
+
+DIV   :  '/'
+      ;
+
+INT : [0-9]+
     ;
+
 
 
 STR : '"' .*? '"'
