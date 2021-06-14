@@ -1,0 +1,6 @@
+def square(arg1):
+    return arg1 * arg1
+end
+
+a = square(5)
+print(a)

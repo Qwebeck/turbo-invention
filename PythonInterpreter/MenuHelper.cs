@@ -22,8 +22,8 @@ namespace PythonInterpreter
             {
                 Console.Write("Provide path to file: ");
                 string path = Console.ReadLine();
-                string text = File.ReadAllText(path);
-                Console.WriteLine("Contents of WriteText.txt = {0}", text);
+                string text = GetFileContents(path);
+                Console.WriteLine($"Contents of {path} = {0}", text);
                 return text;
             }
             catch(Exception ex)
@@ -32,6 +32,19 @@ namespace PythonInterpreter
                 Console.ReadLine();
                 return "Nothing to Parse";
             }
+        }
+
+        public static string GetFileContents(string path)
+        {
+            try 
+            {
+                return File.ReadAllText(path);
+            } 
+            catch(FileNotFoundException)
+            {
+                throw new ArgumentException($"File at {path} does not exists");
+            }
+            
         }
     }
 }

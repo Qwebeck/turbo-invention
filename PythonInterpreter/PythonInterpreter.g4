@@ -3,13 +3,13 @@ grammar PythonInterpreter;
 // parser
 
 
-program : ((function_definition | statement) NEW_LINE)+ EOF
+program : ((function_definition | statement) NEW_LINE+)+ EOF
         ;
 
-function_definition : function_signature function_body
+function_definition : function_signature NEW_LINE function_body
                     ;
 
-function_signature : 'def' ID '(' parameters ')' ':'
+function_signature : DEF WS* ID '(' parameters ')' ':'
                    ;
 
 parameters : ID (',' ID)*
@@ -21,7 +21,7 @@ arguments : (INT | STR | ID) ? (',' (INT | STR | ID)?)*
 function_body : statement_list (RETURN statement)? 'end'
               ;
 
-statement_list : statement (NEW_LINE statement)* 
+statement_list : (statement NEW_LINE)+
                ;
 
 statement : assignment_statement
@@ -65,6 +65,8 @@ condition : expression (COMPARISON_OPERATOR expression)?
 
 math_statement : INT '+' math_statement
                | INT '-' math_statement
+               | INT '*' math_statement
+               | INT '/' math_statement
                | INT
                ;
 
@@ -89,22 +91,25 @@ range_func : 'range' '(' INT ',' INT ')'
            ;
 
 //lexer
-ELSE : 'else'
-     ;
-
-END : 'end'
+DEF : 'def' 
     ;
 
-RETURN : 'return'
-       ;
+COMPARISON_OPERATOR : '=='
+                    | '<='
+                    | '>='
+                    | '!='
+                    | '>'
+                    | '<'
+                    ;
 
-COMPARISON_OPERATOR :  '=='
-                    |  '<='
-                    |  '>='
-                    |  '>'
-                    |  '<'
-                    |  '!='
-                    ; 
+ELSE     : 'else'
+         ;
+
+RETURN   : 'return'
+         ;
+
+END      : 'end'
+         ;
 
 NEW_LINE : '\r'?'\n' 
          ;

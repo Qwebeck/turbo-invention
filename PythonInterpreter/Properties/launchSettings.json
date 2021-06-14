@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PythonInterpreter": {
+      "commandName": "Project",
+      "commandLineArgs": "-f C:\\Users\\Bohdan\\source\\repos\\PythonInterpreter\\PythonInterpreter\\test.spy"
+    }
+  }
+}
