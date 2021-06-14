@@ -1,6 +1,0 @@
-
-foo foo(arg1):
-    print(arg1)
-end
-
-foo(1)

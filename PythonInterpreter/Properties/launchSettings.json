@@ -2,7 +2,7 @@
   "profiles": {
     "PythonInterpreter": {
       "commandName": "Project",
-      "commandLineArgs": "-f C:\\Users\\Bohdan\\source\\repos\\PythonInterpreter\\PythonInterpreter\\Tests\\BasicBlocks\\test_void_function.spy"
+      "commandLineArgs": "-f C:\\Users\\Bohdan\\source\\repos\\PythonInterpreter\\PythonInterpreter\\Examples\\void_function.spy"
     }
   }
 }

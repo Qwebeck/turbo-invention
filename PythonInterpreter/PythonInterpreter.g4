@@ -24,10 +24,10 @@ function_body : statement_list (RETURN statement)? 'end'
 statement_list : (WS* statement WS* )+
                ;
 
-statement : assignment_statement NEW_LINE?
-	      | if_statement NEW_LINE?
-          | function_call_statement NEW_LINE?
-          | math_statement NEW_LINE?
+statement : assignment_statement NEW_LINE*
+	      | if_statement NEW_LINE*
+          | function_call_statement NEW_LINE*
+          | math_statement NEW_LINE*
           ;
 
 
@@ -35,6 +35,7 @@ assignment_statement : ID WS* '=' WS* expression WS*
                      ;
 
 expression: function_call_statement
+            | math_statement
             | INT WS*
             | STR WS*
             | ID WS*
@@ -57,7 +58,7 @@ function_call_statement : library_func WS*
 
 
 
-if_statement :  IF condition':' NEW_LINE statement_list ((ELSE | ELSEIF condition) ':' NEW_LINE statement_list )? WS* END
+if_statement :  IF condition':' NEW_LINE statement_list ((ELSE | ELSEIF condition) ':' NEW_LINE statement_list )* WS* END
              ;
 
 condition : WS* expression (COMPARISON_OPERATOR expression)? WS* #ExpressionCondition
@@ -67,7 +68,7 @@ condition : WS* expression (COMPARISON_OPERATOR expression)? WS* #ExpressionCond
 math_statement : math_statement WS* (TIMES | DIV) WS* math_statement #MultiplicationStatement
                | math_statement WS* (PLUS | MINUS) WS* math_statement #AdditionStatement
                | LPAREN WS* math_statement WS* RPAREN #ParenthesedStatemet
-               | (PLUS | MINUS)* INT #Factor
+               | (PLUS | MINUS)* (INT | ID)  #Factor
                ;
 
 // library functions

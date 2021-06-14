@@ -16,7 +16,7 @@ namespace PythonInterpreter.Visitors
 
         #region members 
 
-        private Dictionary<string, int> IntegerVariables = new Dictionary<string, int>();
+        private Dictionary<string, int> Scope = new Dictionary<string, int>();
 
 
         private readonly Dictionary<string, FunctionDefinition> Functions = new Dictionary<string, FunctionDefinition>();
@@ -46,11 +46,11 @@ namespace PythonInterpreter.Visitors
             }
             var functionName = context.ID().GetText();
             var arguments = context.arguments().GetText();
-            var globalScope = IntegerVariables;
+            var globalScope = Scope;
             var calledFunction = Functions[functionName];
-            IntegerVariables = calledFunction.CreateLocalScope(arguments, globalScope);
+            Scope = calledFunction.CreateLocalScope(arguments, globalScope);
             var result = base.VisitFunction_body(calledFunction.FunctionBody);
-            IntegerVariables = globalScope;
+            Scope = globalScope;
             return result;
         }
 
@@ -68,8 +68,8 @@ namespace PythonInterpreter.Visitors
         public override int VisitAssignment_statement([NotNull] PythonInterpreterParser.Assignment_statementContext context)
         {
             var name = context.ID().GetText();
-            var value = int.Parse(context.expression().INT().GetText());
-            IntegerVariables[name] = value;
+            var value = base.Visit(context.expression());
+            Scope[name] = value;
             return NONE;
         }
 
@@ -84,18 +84,25 @@ namespace PythonInterpreter.Visitors
                 });
                 return ERROR_EXIT_CODE;
             }
-            var isConditionTrue = new ConditionVisitor(IntegerVariables).Visit(context.condition()[0]);
+            var isConditionTrue = new ConditionVisitor(Scope).Visit(context.condition()[0]);
             var stamentLists = context.statement_list();
             if (isConditionTrue)
             {
                 var statement = context.statement_list()[0];
                 return base.Visit(statement);
             }
-            else if (context.ELSEIF() != null && new ConditionVisitor(IntegerVariables).Visit(context.condition()[1]))
+            
+            if (context.ELSEIF().Length > 0)
             {
-                return base.Visit(stamentLists[1]);
+                var matchedStatement = context.condition().Zip(stamentLists).Skip(1).FirstOrDefault(pair => new ConditionVisitor(Scope).Visit(pair.First));
+                if (!matchedStatement.Equals(default))
+                {
+                    return base.Visit(matchedStatement.Second);
+                }
+    
             }
-            else if (context.ELSE() != null)
+            
+            if (context.ELSE() != null)
             {
                 var statement = stamentLists.Last();
                 return base.Visit(statement);
@@ -128,7 +135,12 @@ namespace PythonInterpreter.Visitors
 
         public override int VisitFactor([NotNull] PythonInterpreterParser.FactorContext context)
         {
-            return int.Parse(context.INT().GetText());
+            return (context.INT(), context.ID()) switch
+            {
+                (var value, null) => int.Parse(value.GetText()),
+                (null, var variable) => Scope.TryGetValue(variable.GetText(), out int result) ? result : throw new ArgumentException($"Variable {variable.GetText()} not exists in scope"),
+                (_, _) => throw new ArgumentException($"Bad context passed in {nameof(VisitFactor)}")
+            };  
         }
 
         public override int VisitParenthesedStatemet([NotNull] PythonInterpreterParser.ParenthesedStatemetContext context)
@@ -153,6 +165,7 @@ namespace PythonInterpreter.Visitors
             }
             return base.VisitProgram(context);
         }
+
         #endregion
         #endregion
 
@@ -161,7 +174,7 @@ namespace PythonInterpreter.Visitors
 
         public override int VisitPrint_func([NotNull] PythonInterpreterParser.Print_funcContext context)
         {
-            context.Evaluate(IntegerVariables);
+            context.Evaluate(Scope);
             return NONE;
         }
 
@@ -182,7 +195,7 @@ namespace PythonInterpreter.Visitors
 
         #region Helper methods
 
-        private int GetIntValue(string x) => IntegerVariables.TryGetValue(x, out int value) ? value : int.Parse(x);
+        private int GetIntValue(string x) => Scope.TryGetValue(x, out int value) ? value : int.Parse(x);
         
         #endregion
     }
