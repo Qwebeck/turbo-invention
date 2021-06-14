@@ -21,25 +21,25 @@ arguments : (INT | STR | ID) ? (',' (INT | STR | ID)?)*
 function_body : statement_list (RETURN statement)? 'end'
               ;
 
-statement_list : (statement NEW_LINE)+
+statement_list : (WS* statement WS* )+
                ;
 
-statement : assignment_statement
-	      | if_statement
-          | function_call_statement
-          | math_statement
+statement : assignment_statement NEW_LINE?
+	      | if_statement NEW_LINE?
+          | function_call_statement NEW_LINE?
+          | math_statement NEW_LINE?
           ;
 
 
-assignment_statement : ID '=' expression
+assignment_statement : ID WS* '=' WS* expression WS*
                      ;
 
 expression: function_call_statement
-            | INT
-            | STR
-            | ID
-            | increment
-            | decrement
+            | INT WS*
+            | STR WS*
+            | ID WS*
+            | increment WS*
+            | decrement WS*
             ;
 
 increment : '++' INT
@@ -50,17 +50,18 @@ decrement : '--' INT
           | INT '--'
           ;
 
-function_call_statement : library_func
-                        | ID LPAREN arguments RPAREN
+function_call_statement : library_func WS*
+                        | ID LPAREN arguments RPAREN WS*
                         ;
 
 
 
 
-if_statement : 'if' WS* condition WS* ':' WS* statement_list WS* (ELSE statement_list)? WS* END
+if_statement :  IF condition':' NEW_LINE statement_list ((ELSE | ELSEIF condition) ':' NEW_LINE statement_list )? WS* END
              ;
 
-condition : expression (COMPARISON_OPERATOR expression)?
+condition : WS* expression (COMPARISON_OPERATOR expression)? WS* #ExpressionCondition
+          | WS* NOT? (TRUE | FALSE) WS* #LogicalCondition
           ;
 
 math_statement : math_statement WS* (TIMES | DIV) WS* math_statement #MultiplicationStatement
@@ -99,8 +100,12 @@ COMPARISON_OPERATOR : '=='
                     | '>'
                     | '<'
                     ;
+IF       : 'if'
+         ;
 
 ELSE     : 'else'
+         ;
+ELSEIF   : 'elif'
          ;
 
 RETURN   : 'return'
@@ -109,7 +114,16 @@ RETURN   : 'return'
 END      : 'end'
          ;
 
-NEW_LINE : '\r'?'\n' 
+TRUE    : 'True'
+        ;
+
+FALSE   : 'False'
+        ;
+
+NOT     : 'not'
+        ;
+
+NEW_LINE : ('\r'?'\n' | EOF) // -> skip
          ;
 
 LPAREN   : '('

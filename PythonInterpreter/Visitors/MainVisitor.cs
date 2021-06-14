@@ -6,12 +6,13 @@ using PythonInterpreter.Grammar;
 using System.Linq;
 
 
-namespace PythonInterpreter
+namespace PythonInterpreter.Visitors
 {
-    class Interpreter: PythonInterpreterBaseVisitor<int>
+    public class MainVisitor: PythonInterpreterBaseVisitor<int>
     {
         public static int ERROR_EXIT_CODE => 1;
         public static int SUCCESS_EXIT_CODE => 0;
+        public static int NONE => int.MinValue; // TODO: make it smarter
 
         #region members 
 
@@ -34,7 +35,6 @@ namespace PythonInterpreter
             return SUCCESS_EXIT_CODE;
         }
 
-
         public override int VisitFunction_call_statement([NotNull] PythonInterpreterParser.Function_call_statementContext context)
         {
             // TODO: library function call should be handled by grammar.
@@ -48,20 +48,28 @@ namespace PythonInterpreter
             var globalScope = IntegerVariables;
             var calledFunction = Functions[functionName];
             IntegerVariables = calledFunction.CreateLocalScope(arguments, globalScope);
-            // TODO: handle void and return 
-            base.VisitFunction_body(calledFunction.FunctionBody);
+            var result = base.VisitFunction_body(calledFunction.FunctionBody);
             IntegerVariables = globalScope;
-            return SUCCESS_EXIT_CODE;
+            return result;
+        }
+
+        public override int VisitFunction_body([NotNull] PythonInterpreterParser.Function_bodyContext context)
+        {
+            var IsHasReturnStatement = context.RETURN() != null;
+            return IsHasReturnStatement 
+                ? base.VisitStatement_list(context.statement_list()) 
+                : NONE;
         }
         #endregion
 
         #region Statements 
+
         public override int VisitAssignment_statement([NotNull] PythonInterpreterParser.Assignment_statementContext context)
         {
             var name = context.ID().GetText();
             var value = int.Parse(context.expression().INT().GetText());
             IntegerVariables[name] = value;
-            return base.VisitAssignment_statement(context);
+            return NONE;
         }
 
         public override int VisitIf_statement([NotNull] PythonInterpreterParser.If_statementContext context)
@@ -75,19 +83,26 @@ namespace PythonInterpreter
                 });
                 return ERROR_EXIT_CODE;
             }
-            var condition = context.condition();
-            if (condition.IsTrue(IntegerVariables))
+            var isConditionTrue = new ConditionVisitor(IntegerVariables).Visit(context.condition()[0]);
+            var stamentLists = context.statement_list();
+            if (isConditionTrue)
             {
                 var statement = context.statement_list()[0];
-                return base.VisitStatement_list(statement);
+                return base.Visit(statement);
+            }
+            else if (context.ELSEIF() != null && new ConditionVisitor(IntegerVariables).Visit(context.condition()[1]))
+            {
+                return base.Visit(stamentLists[1]);
             }
             else if (context.ELSE() != null)
             {
-                var statement = context.statement_list()[1];
-                return base.VisitStatement_list(statement);
+                var statement = stamentLists.Last();
+                return base.Visit(statement);
             }
             return SUCCESS_EXIT_CODE;
         }
+
+
 
         #region Math
         public override int VisitAdditionStatement([NotNull] PythonInterpreterParser.AdditionStatementContext context)
@@ -120,6 +135,14 @@ namespace PythonInterpreter
             var statement = context.math_statement();
             return base.Visit(statement);
         }
+        public override int VisitStatement([NotNull] PythonInterpreterParser.StatementContext context)
+        {
+            if(context.NEW_LINE() != null)
+            {
+                context.RemoveLastChild();
+            }
+            return base.VisitStatement(context);
+        }
         #endregion
         #endregion
 
@@ -129,27 +152,23 @@ namespace PythonInterpreter
         public override int VisitPrint_func([NotNull] PythonInterpreterParser.Print_funcContext context)
         {
             context.Evaluate(IntegerVariables);
-            return base.VisitPrint_func(context);
+            return NONE;
         }
 
         public override int VisitMin_func([NotNull] PythonInterpreterParser.Min_funcContext context)
         {
             var arguments = context.arguments().GetText().Split(',');
             var numbers = arguments.Select(x => GetIntValue(x));
-            Console.WriteLine(numbers.Min());
-            return base.VisitMin_func(context);
+            return numbers.Min();
         }
 
         public override int VisitMax_func([NotNull] PythonInterpreterParser.Max_funcContext context)
         {
             var arguments = context.arguments().GetText().Split(',');
             var numbers = arguments.Select(x => GetIntValue(x));
-            Console.WriteLine(numbers.Max());
-            return base.VisitMax_func(context);
+            return numbers.Max();
         }
         #endregion
-
-
 
         #region Helper methods
 

@@ -1,7 +1,6 @@
 ﻿using System;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
-using PythonInterpreter.Grammar;
+using PythonInterpreter.Visitors;
+using PythonInterpreter.Extensions;
 using CommandLine;
 
 namespace PythonInterpreter
@@ -22,7 +21,7 @@ namespace PythonInterpreter
             CommandLine.Parser.Default.ParseArguments<Options>(args)
                        .WithParsed(o =>
                        {
-                           var interpreter = new Interpreter();
+                           var interpreter = new MainVisitor();
                            if (o.Overexcited)
                            {
                                RunInOverexcitedMode(interpreter);
@@ -40,7 +39,7 @@ namespace PythonInterpreter
 
 
 
-        public static void RunInOverexcitedMode(Interpreter interpreter)
+        public static void RunInOverexcitedMode(MainVisitor interpreter)
         {
             var isFile = false;
             var input = string.Empty;
@@ -59,7 +58,7 @@ namespace PythonInterpreter
             }
         }
 
-        public static void RunInterpreterOnFile(Interpreter interpreter, string fileName)
+        public static void RunInterpreterOnFile(MainVisitor interpreter, string fileName)
         {
             var input = MenuHelper.GetFileContents(fileName);
             RunInterprerOnInput(interpreter, input);
@@ -67,7 +66,7 @@ namespace PythonInterpreter
             Console.Read();
         }
 
-        public static void RunInInteractiveConsole(Interpreter interpreter)
+        public static void RunInInteractiveConsole(MainVisitor interpreter)
         {
             while (true)
             {
@@ -77,15 +76,13 @@ namespace PythonInterpreter
             }
         }
 
-        public static void RunInterprerOnInput(Interpreter interpreter, string input)
+        public static void RunInterprerOnInput(MainVisitor interpreter, string input)
         {
-            var stream = new AntlrInputStream(input);
-            var lexer = new PythonInterpreterLexer(stream);
-            var tokens = new CommonTokenStream(lexer);
-            var parser = new PythonInterpreterParser(tokens);
-            var programParseTree = parser.program();
-            var result = interpreter.Visit(programParseTree);
-            Console.WriteLine(result);
+            var result = interpreter.RunOnInput(input);
+            if (result != MainVisitor.NONE)
+            {
+                Console.WriteLine(result);
+            }
         }
     }
 }
