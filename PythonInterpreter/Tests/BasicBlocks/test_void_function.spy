@@ -1,4 +1,5 @@
-def foo(arg1):
+
+foo foo(arg1):
     print(arg1)
 end
 

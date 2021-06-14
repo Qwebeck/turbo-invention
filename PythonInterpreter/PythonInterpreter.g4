@@ -3,7 +3,7 @@ grammar PythonInterpreter;
 // parser
 
 
-program : ((function_definition | statement) NEW_LINE+)+ EOF
+program : NEW_LINE* ((function_definition | statement) NEW_LINE*)+ EOF
         ;
 
 function_definition : function_signature NEW_LINE function_body
@@ -123,7 +123,7 @@ FALSE   : 'False'
 NOT     : 'not'
         ;
 
-NEW_LINE : ('\r'?'\n' | EOF) // -> skip
+NEW_LINE : '\r'?'\n' 
          ;
 
 LPAREN   : '('

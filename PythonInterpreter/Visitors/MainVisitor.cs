@@ -28,6 +28,7 @@ namespace PythonInterpreter.Visitors
         {
             var signature = context.function_signature();
             var functionName = signature.ID().ToString();
+
             var functionParams = signature.parameters().ID().Select(id => id.GetText());
             // TODO fix to handle more sophisticated variables
             var functionDefinition = new FunctionDefinition(functionName, functionParams, context.function_body());
@@ -137,11 +138,20 @@ namespace PythonInterpreter.Visitors
         }
         public override int VisitStatement([NotNull] PythonInterpreterParser.StatementContext context)
         {
-            if(context.NEW_LINE() != null)
+            if(context.NEW_LINE() != null) // escaping new line, so program will return last executed value
             {
                 context.RemoveLastChild();
             }
             return base.VisitStatement(context);
+        }
+
+        public override int VisitProgram([NotNull] PythonInterpreterParser.ProgramContext context)
+        {
+            if (context.Eof() != null) // escaping eof, so program will return last executed value
+            {
+                context.RemoveLastChild();
+            }
+            return base.VisitProgram(context);
         }
         #endregion
         #endregion

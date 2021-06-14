@@ -69,56 +69,64 @@ namespace PythonInterpreter.Tests
         public void ShouldCorrectlyHandleIFStatement_WhenContidionIsTrue()
         {
             // Arrange
-            var expectedResult = 12;
+            var expectedResult = "12";
             var testedStatement = $@"
             if True:
-                {expectedResult}
+                print({expectedResult})
             else:
                 10
             end
             ";
             // Act
-            var result = mainVisitor.RunOnInput(testedStatement);
-            // Assert
-            result.Should().Be(expectedResult);
+            using (var mock = new ConsoleMockHelper())
+            {
+                mainVisitor.RunOnInput(testedStatement);
+                // Assert
+                mock.Content.Should().Contain(expectedResult);
+            };
         }
 
         [Fact]
         public void ShouldCorrectlyHandleIFStatement_WhenContidionIsFalse()
         {
             // Arrange
-            var expectedResult = 12;
+            var expectedResult = "12";
             var testedStatement = $@"
             if False:
                 10
             else:
-               {expectedResult}
+               print({expectedResult})
             end
             ";
             // Act
-            var result = mainVisitor.RunOnInput(testedStatement);
-            // Assert
-            result.Should().Be(expectedResult);
+            using (var mock = new ConsoleMockHelper())
+            {
+                mainVisitor.RunOnInput(testedStatement);
+                // Assert
+                mock.Content.Should().Contain(expectedResult);
+            };
         }
 
         [Fact]
         public void ShouldCorrectlyHandleIFStatement_WhenInCondition()
         {
             // Arrange
-            var expectedResult = 12;
+            var expectedResult = "12";
             var testedStatement = $@"
             if False:
                 10
-            else if True:
-                {expectedResult}
+            elif True:
+                print({expectedResult})
             end
             ";
             // Act
-            var result = mainVisitor.RunOnInput(testedStatement);
-            // Assert
-            result.Should().Be(expectedResult);
+            using (var mock = new ConsoleMockHelper())
+            {
+                mainVisitor.RunOnInput(testedStatement);
+                // Assert
+                mock.Content.Should().Contain(expectedResult);
+            };
         }
-
         #endregion
     }
 }

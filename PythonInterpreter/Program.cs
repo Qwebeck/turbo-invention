@@ -18,7 +18,7 @@ namespace PythonInterpreter
         public static string PROMPT => ">>";
         static void Main(string[] args)
         {
-            CommandLine.Parser.Default.ParseArguments<Options>(args)
+            Parser.Default.ParseArguments<Options>(args)
                        .WithParsed(o =>
                        {
                            var interpreter = new MainVisitor();
@@ -29,23 +29,21 @@ namespace PythonInterpreter
                            else if (!string.IsNullOrEmpty(o.File))
                            {
                                RunInterpreterOnFile(interpreter, o.File);
-                           } 
+                           }
                            else
                            {
                                RunInInteractiveConsole(interpreter);
-                           }         
+                           }
                        });
         }
 
 
-
         public static void RunInOverexcitedMode(MainVisitor interpreter)
         {
-            var isFile = false;
-            var input = string.Empty;
             while (true)
             {
-                isFile = MenuHelper.InputType();
+                bool isFile = MenuHelper.InputType();
+                string input;
                 if (isFile)
                     input = MenuHelper.GetFile();
                 else
@@ -53,17 +51,42 @@ namespace PythonInterpreter
                     Console.Write(PROMPT);
                     input = Console.ReadLine();
                 }
-                RunInterprerOnInput(interpreter, input);
+                try
+                {
+                    RunInterprerOnInput(interpreter, input);
+                }
+                catch (Exception ex) when (CatchAndLog(ex))
+                {
+
+                }
 
             }
+        }
+
+        private static bool CatchAndLog(Exception ex, string customLexerPrefix="",
+            string customParserPrefix="") => ex switch
+        {
+            BadLexerInputException bl => LogAndReturn($"{customLexerPrefix} {bl.Message}"),
+            BadParserInputException bp => LogAndReturn($"{customParserPrefix} {bp.Message}"),
+            _ => false
+        };
+        private static bool LogAndReturn(string message)
+        {
+            Console.WriteLine(message);
+            return true;
         }
 
         public static void RunInterpreterOnFile(MainVisitor interpreter, string fileName)
         {
             var input = MenuHelper.GetFileContents(fileName);
-            RunInterprerOnInput(interpreter, input);
-            Console.WriteLine("Execution endend. Press any key to continue ...");
-            Console.Read();
+            try
+            {
+                RunInterprerOnInput(interpreter, input);
+                Console.WriteLine("Execution endend. Press any key to continue ...");
+                Console.Read();
+            } 
+            catch(Exception ex) when (CatchAndLog(ex)) { }
+            
         }
 
         public static void RunInInteractiveConsole(MainVisitor interpreter)
@@ -72,7 +95,12 @@ namespace PythonInterpreter
             {
                 Console.Write(PROMPT);
                 var input = Console.ReadLine();
-                RunInterprerOnInput(interpreter, input);
+                try
+                {
+                    RunInterprerOnInput(interpreter, input);
+                } 
+                catch (Exception ex) when (CatchAndLog(ex)) { }
+                
             }
         }
 
