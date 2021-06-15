@@ -127,14 +127,27 @@ namespace PythonInterpreter.Visitors
                 : base.Visit(left) * base.Visit(right);
         }
 
-        public override int VisitFactor([NotNull] PythonInterpreterParser.FactorContext context)
+        public override int VisitMathFactor([NotNull] PythonInterpreterParser.MathFactorContext context)
         {
-            return (context.INT(), context.ID()) switch
+            return (context.factor(), context.variable()) switch
             {
-                (var value, null) => int.Parse(value.GetText()),
-                (null, var variable) => GlobalScope.Ints.TryGetValue(variable.GetText(), out int result) ? result : throw new ArgumentException($"Variable {variable.GetText()} not exists in scope"),
+                (var value, null) => base.Visit(value),
+                (null, var variable) => base.Visit(variable),
                 (_, _) => throw new ArgumentException($"Bad context passed in {nameof(VisitFactor)}")
             };  
+        }
+
+        public override int VisitFactor([NotNull] PythonInterpreterParser.FactorContext context)
+        {
+            var value = context.INT().GetText();
+            return int.Parse(value);
+        }
+        public override int VisitVariable([NotNull] PythonInterpreterParser.VariableContext context)
+        {
+            var variable = context.ID().GetText();
+            return GlobalScope.Ints.TryGetValue(variable, out int result) 
+                    ? result 
+                    : throw new ArgumentException($"Variable {variable} not exists in scope");
         }
 
         public override int VisitParenthesedStatemet([NotNull] PythonInterpreterParser.ParenthesedStatemetContext context)
@@ -168,9 +181,16 @@ namespace PythonInterpreter.Visitors
 
         public override int VisitPrint_func([NotNull] PythonInterpreterParser.Print_funcContext context)
         {
-            context.Evaluate(GlobalScope);
+            var arguments = context.arguments().argument();
+            var values = arguments.Select(arg => arg.@string() == null 
+                                                ? base.Visit(arg).ToString()
+                                                : arg.GetText()
+                                         );
+            var result = string.Join(' ', values).Trim(' ');
+            Console.WriteLine(result);
             return NONE;
         }
+
 
         public override int VisitMin_func([NotNull] PythonInterpreterParser.Min_funcContext context)
         {

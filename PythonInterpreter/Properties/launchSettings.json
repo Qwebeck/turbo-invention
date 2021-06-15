@@ -2,7 +2,7 @@
   "profiles": {
     "PythonInterpreter": {
       "commandName": "Project",
-      "commandLineArgs": "-f C:\\Users\\Bohdan\\source\\repos\\PythonInterpreter\\PythonInterpreter\\Examples\\function_with_return.spy"
+      "commandLineArgs": "-f C:\\Users\\Bohdan\\source\\repos\\PythonInterpreter\\PythonInterpreter\\Examples\\function_with_syntax_error.spy"
     }
   }
 }

@@ -9,9 +9,21 @@ using PythonInterpreter.Tests.Helpers;
 
 namespace PythonInterpreter.Tests
 {
-    public class ForLoopTests
+    public class EnumerableTests
     {
         private readonly MainVisitor mainVisitor = new MainVisitor();
+
+
+        [Fact]
+        public void RangeShouldReturnEnumerable()
+        {
+            // Arrange
+            //var testString = "1 .. 5";
+            //// Act
+            //var result = 
+            // Assert
+
+        }
 
         //[Fact]
         //public void ShouldIterateAndPrintValuesFromRange()
