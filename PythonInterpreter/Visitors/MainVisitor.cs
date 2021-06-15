@@ -50,12 +50,19 @@ namespace PythonInterpreter.Visitors
             return result;
         }
 
-        public override int VisitFunction_body([NotNull] PythonInterpreterParser.Function_bodyContext context)
+        public override int VisitReturnStatement([NotNull] PythonInterpreterParser.ReturnStatementContext context)
         {
-            var IsHasReturnStatement = context.RETURN() != null;
-            return IsHasReturnStatement 
-                ? base.VisitStatement_list(context.statement_list()) 
-                : NONE;
+            var statement = context.statement();
+            var result = new MainVisitor 
+            { 
+                GlobalScope = new Scope(GlobalScope)
+            }.VisitStatement(statement);
+            return result;
+                
+        }
+        public override int VisitEmptyFunctionEnd([NotNull] PythonInterpreterParser.EmptyFunctionEndContext context)
+        {
+            return NONE;
         }
         #endregion
 
@@ -65,21 +72,12 @@ namespace PythonInterpreter.Visitors
         {
             var name = context.ID().GetText();
             var value = base.Visit(context.expression());
-            GlobalScope.IntegerVariables[name] = value;
+            GlobalScope.Ints[name] = value;
             return NONE;
         }
 
         public override int VisitIf_statement([NotNull] PythonInterpreterParser.If_statementContext context)
         {
-            var validationErrors = context.Validate();
-            if (validationErrors.Any())
-            {
-                validationErrors.ForEach(error =>
-                {
-                    Console.WriteLine(validationErrors);
-                });
-                return ERROR_EXIT_CODE;
-            }
             var isConditionTrue = new ConditionVisitor(GlobalScope).Visit(context.condition()[0]);
             var stamentLists = context.statement_list();
             if (isConditionTrue)
@@ -134,7 +132,7 @@ namespace PythonInterpreter.Visitors
             return (context.INT(), context.ID()) switch
             {
                 (var value, null) => int.Parse(value.GetText()),
-                (null, var variable) => GlobalScope.IntegerVariables.TryGetValue(variable.GetText(), out int result) ? result : throw new ArgumentException($"Variable {variable.GetText()} not exists in scope"),
+                (null, var variable) => GlobalScope.Ints.TryGetValue(variable.GetText(), out int result) ? result : throw new ArgumentException($"Variable {variable.GetText()} not exists in scope"),
                 (_, _) => throw new ArgumentException($"Bad context passed in {nameof(VisitFactor)}")
             };  
         }
@@ -146,7 +144,7 @@ namespace PythonInterpreter.Visitors
         }
         public override int VisitStatement([NotNull] PythonInterpreterParser.StatementContext context)
         {
-            if(context.NEW_LINE().LastOrDefault()!= null) // escaping new line, so program will return last executed value
+            while(context.NEW_LINE().LastOrDefault()!= null) // escaping new line, so program will return last executed value
             {
                 context.RemoveLastChild();
             }
@@ -155,7 +153,7 @@ namespace PythonInterpreter.Visitors
 
         public override int VisitProgram([NotNull] PythonInterpreterParser.ProgramContext context)
         {
-            if (context.Eof() != null) // escaping eof, so program will return last executed value
+            if(context.Eof() != null) // escaping eof, so program will return last executed value
             {
                 context.RemoveLastChild();
             }
@@ -177,7 +175,7 @@ namespace PythonInterpreter.Visitors
         public override int VisitMin_func([NotNull] PythonInterpreterParser.Min_funcContext context)
         {
             var arguments = context.arguments().GetText().Split(',');
-            var numbers = arguments.Select(x => GetIntValue(x));
+            var numbers = arguments.Select(x =>GetIntValue(x));
             return numbers.Min();
         }
 
@@ -191,7 +189,7 @@ namespace PythonInterpreter.Visitors
 
         #region Helper methods
 
-        private int GetIntValue(string x) => GlobalScope.IntegerVariables.TryGetValue(x, out int value) ? value : int.Parse(x);
+        private int GetIntValue(string x) => GlobalScope.Ints.TryGetValue(x, out int value) ? value : int.Parse(x);
         
         #endregion
     }

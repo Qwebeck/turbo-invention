@@ -12,14 +12,19 @@ function_definition : function_signature NEW_LINE function_body
 function_signature : DEF WS* ID LPAREN parameters RPAREN ':'
                    ;
 
-parameters : ID (',' ID)*
+parameters : ID? (',' ID)*
            ;
 
 arguments : (INT | STR | ID) ? (',' (INT | STR | ID)?)*
           ;
 
-function_body : statement_list (RETURN statement)? 'end'
+function_body : statement_list function_end
+              | function_end
               ;
+
+function_end : RETURN statement NEW_LINE* END #ReturnStatement
+             | END #EmptyFunctionEnd
+             ;
 
 statement_list : (WS* statement WS* )+
                ;
@@ -34,8 +39,8 @@ statement : assignment_statement NEW_LINE*
 assignment_statement : ID WS* '=' WS* expression WS*
                      ;
 
-expression: function_call_statement
-            | math_statement
+expression: function_call_statement WS*
+            | math_statement WS*
             | INT WS*
             | STR WS*
             | ID WS*
@@ -124,7 +129,7 @@ FALSE   : 'False'
 NOT     : 'not'
         ;
 
-NEW_LINE : '\r'?'\n' 
+NEW_LINE : '\r'?'\n'
          ;
 
 LPAREN   : '('

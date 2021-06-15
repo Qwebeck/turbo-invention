@@ -11,7 +11,7 @@ namespace PythonInterpreter
         public static void Evaluate(this PythonInterpreterParser.Print_funcContext context, Scope scope)
         {
             var arguments = context.arguments().GetText().Split(',');
-            arguments = arguments.Select(x => scope.IntegerVariables.TryGetValue(x, out int value) ? value.ToString() : x).ToArray();
+            arguments = arguments.Select(x => scope.Ints.TryGetValue(x, out int value) ? value.ToString() : x).ToArray();
             var result = string.Join(' ', arguments).Trim(' ');
             Console.WriteLine(result);
         }

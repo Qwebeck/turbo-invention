@@ -12,7 +12,7 @@ namespace PythonInterpreter
         {
             // Work with different types of contexts
             var x = context.GetText();
-            return scope.IntegerVariables.TryGetValue(x, out int value) ? value : int.Parse(x);
+            return scope.Ints.TryGetValue(x, out int value) ? value : int.Parse(x);
         }
 
         public static int Evaluate(this PythonInterpreterParser.ExpressionContext[] context, Scope scope)

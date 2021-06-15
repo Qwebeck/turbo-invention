@@ -2,5 +2,14 @@ def square(arg1):
     return arg1 * arg1
 end
 
-a = square(5)
-print(a)
+def foo(a, b):
+    a = square(a)
+    b = square(b)
+    if a > b:
+        print("a is greater than b", a, b)
+    else:
+        print("b is greater than a", b, a)
+    end
+end
+
+foo(2, 3)

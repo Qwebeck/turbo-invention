@@ -1,0 +1,10 @@
+def foo2():
+    if False:
+        print("Test case 1")
+    elif False:
+        print("Test case 2")
+    elif True:
+        print("Test case 3")                    
+    end                
+end
+foo2()

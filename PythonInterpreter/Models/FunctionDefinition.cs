@@ -23,11 +23,11 @@ namespace PythonInterpreter
      
         public Scope CreateLocalScope(string stringSeparatedVariables, Scope globalScope)
         {
-            var valuesToAssign = stringSeparatedVariables.Split(',').Select(var => globalScope.IntegerVariables.TryGetValue(var, out int val) ? val  : int.Parse(var));
+            var valuesToAssign = stringSeparatedVariables.Split(',').Select(var => globalScope.Ints.TryGetValue(var, out int val) ? val  : int.Parse(var));
             var localScope = new Scope(globalScope);
             Parameters.Keys.Zip(valuesToAssign).ForEach(item =>
             {
-                localScope.IntegerVariables[item.First] = item.Second;
+                localScope.Ints[item.First] = item.Second;
             });
             return localScope;
         }
