@@ -15,11 +15,7 @@ namespace PythonInterpreter.Visitors
         public static int NONE => int.MinValue; // TODO: make it smarter
 
         #region members 
-
-        private Dictionary<string, int> Scope = new Dictionary<string, int>();
-
-
-        private readonly Dictionary<string, FunctionDefinition> Functions = new Dictionary<string, FunctionDefinition>();
+        private Scope GlobalScope = new Scope();
         #endregion
 
         #region function handling
@@ -32,7 +28,7 @@ namespace PythonInterpreter.Visitors
             var functionParams = signature.parameters().ID().Select(id => id.GetText());
             // TODO fix to handle more sophisticated variables
             var functionDefinition = new FunctionDefinition(functionName, functionParams, context.function_body());
-            Functions[functionName] = functionDefinition;
+            GlobalScope.Functions[functionName] = functionDefinition;
             return SUCCESS_EXIT_CODE;
         }
 
@@ -46,11 +42,11 @@ namespace PythonInterpreter.Visitors
             }
             var functionName = context.ID().GetText();
             var arguments = context.arguments().GetText();
-            var globalScope = Scope;
-            var calledFunction = Functions[functionName];
-            Scope = calledFunction.CreateLocalScope(arguments, globalScope);
+            var globalScope = GlobalScope;
+            var calledFunction = GlobalScope.Functions[functionName];
+            GlobalScope = calledFunction.CreateLocalScope(arguments, globalScope);
             var result = base.VisitFunction_body(calledFunction.FunctionBody);
-            Scope = globalScope;
+            GlobalScope = globalScope;
             return result;
         }
 
@@ -69,7 +65,7 @@ namespace PythonInterpreter.Visitors
         {
             var name = context.ID().GetText();
             var value = base.Visit(context.expression());
-            Scope[name] = value;
+            GlobalScope.IntegerVariables[name] = value;
             return NONE;
         }
 
@@ -84,7 +80,7 @@ namespace PythonInterpreter.Visitors
                 });
                 return ERROR_EXIT_CODE;
             }
-            var isConditionTrue = new ConditionVisitor(Scope).Visit(context.condition()[0]);
+            var isConditionTrue = new ConditionVisitor(GlobalScope).Visit(context.condition()[0]);
             var stamentLists = context.statement_list();
             if (isConditionTrue)
             {
@@ -94,7 +90,7 @@ namespace PythonInterpreter.Visitors
             
             if (context.ELSEIF().Length > 0)
             {
-                var matchedStatement = context.condition().Zip(stamentLists).Skip(1).FirstOrDefault(pair => new ConditionVisitor(Scope).Visit(pair.First));
+                var matchedStatement = context.condition().Zip(stamentLists).Skip(1).FirstOrDefault(pair => new ConditionVisitor(GlobalScope).Visit(pair.First));
                 if (!matchedStatement.Equals(default))
                 {
                     return base.Visit(matchedStatement.Second);
@@ -138,7 +134,7 @@ namespace PythonInterpreter.Visitors
             return (context.INT(), context.ID()) switch
             {
                 (var value, null) => int.Parse(value.GetText()),
-                (null, var variable) => Scope.TryGetValue(variable.GetText(), out int result) ? result : throw new ArgumentException($"Variable {variable.GetText()} not exists in scope"),
+                (null, var variable) => GlobalScope.IntegerVariables.TryGetValue(variable.GetText(), out int result) ? result : throw new ArgumentException($"Variable {variable.GetText()} not exists in scope"),
                 (_, _) => throw new ArgumentException($"Bad context passed in {nameof(VisitFactor)}")
             };  
         }
@@ -150,11 +146,11 @@ namespace PythonInterpreter.Visitors
         }
         public override int VisitStatement([NotNull] PythonInterpreterParser.StatementContext context)
         {
-            if(context.NEW_LINE() != null) // escaping new line, so program will return last executed value
+            if(context.NEW_LINE().LastOrDefault()!= null) // escaping new line, so program will return last executed value
             {
                 context.RemoveLastChild();
             }
-            return base.VisitStatement(context);
+             return base.VisitStatement(context);
         }
 
         public override int VisitProgram([NotNull] PythonInterpreterParser.ProgramContext context)
@@ -174,7 +170,7 @@ namespace PythonInterpreter.Visitors
 
         public override int VisitPrint_func([NotNull] PythonInterpreterParser.Print_funcContext context)
         {
-            context.Evaluate(Scope);
+            context.Evaluate(GlobalScope);
             return NONE;
         }
 
@@ -195,7 +191,7 @@ namespace PythonInterpreter.Visitors
 
         #region Helper methods
 
-        private int GetIntValue(string x) => Scope.TryGetValue(x, out int value) ? value : int.Parse(x);
+        private int GetIntValue(string x) => GlobalScope.IntegerVariables.TryGetValue(x, out int value) ? value : int.Parse(x);
         
         #endregion
     }

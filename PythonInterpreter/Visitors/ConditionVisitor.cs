@@ -8,8 +8,8 @@ namespace PythonInterpreter.Visitors
 {
     class ConditionVisitor: PythonInterpreterBaseVisitor<bool>
     {
-        private readonly Dictionary<string, int> Scope;
-        public ConditionVisitor(Dictionary<string, int> scope) => Scope = scope;
+        private readonly Scope Scope;
+        public ConditionVisitor(Scope scope) => Scope = scope;
         public override bool VisitExpressionCondition([NotNull] PythonInterpreterParser.ExpressionConditionContext context)
         {
             if (context.expression().Length == 1)

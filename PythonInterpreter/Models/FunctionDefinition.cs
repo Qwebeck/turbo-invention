@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using PythonInterpreter.Grammar;
-
+using PythonInterpreter.Visitors;
 
 namespace PythonInterpreter
 {
-    class FunctionDefinition
+    public class FunctionDefinition
     {
         public readonly string FunctionName;
         public readonly Dictionary<string, int> Parameters;
@@ -21,13 +21,13 @@ namespace PythonInterpreter
             
 
      
-        public Dictionary<string, int> CreateLocalScope(string stringSeparatedVariables, Dictionary<string, int> globalVariables)
+        public Scope CreateLocalScope(string stringSeparatedVariables, Scope globalScope)
         {
-            var valuesToAssign = stringSeparatedVariables.Split(',').Select(var => globalVariables.TryGetValue(var, out int val) ? val  : int.Parse(var));
-            var localScope = new Dictionary<string, int>(Parameters);
-            localScope.Keys.Zip(valuesToAssign).ForEach(item =>
+            var valuesToAssign = stringSeparatedVariables.Split(',').Select(var => globalScope.IntegerVariables.TryGetValue(var, out int val) ? val  : int.Parse(var));
+            var localScope = new Scope(globalScope);
+            Parameters.Keys.Zip(valuesToAssign).ForEach(item =>
             {
-                localScope[item.First] = item.Second;
+                localScope.IntegerVariables[item.First] = item.Second;
             });
             return localScope;
         }
