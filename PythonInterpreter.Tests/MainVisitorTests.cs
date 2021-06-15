@@ -37,7 +37,7 @@ namespace PythonInterpreter.Tests
             // Arrange
             var testedStatement = "print(1,2,3)";
             // Act
-            using(var mock = new ConsoleMockHelper())
+            using(var mock = new ConsoleMock())
             {
                 mainVisitor.RunOnInput(testedStatement);
                 // Assert
@@ -56,7 +56,7 @@ namespace PythonInterpreter.Tests
                 print(a,b,c)
             ";
             // Act
-            using (var mock = new ConsoleMockHelper())
+            using (var mock = new ConsoleMock())
             {
                 mainVisitor.RunOnInput(testedStatement);
                 // Assert
@@ -78,7 +78,7 @@ namespace PythonInterpreter.Tests
             end
             ";
             // Act
-            using (var mock = new ConsoleMockHelper())
+            using (var mock = new ConsoleMock())
             {
                 mainVisitor.RunOnInput(testedStatement);
                 // Assert
@@ -99,7 +99,7 @@ namespace PythonInterpreter.Tests
             end
             ";
             // Act
-            using (var mock = new ConsoleMockHelper())
+            using (var mock = new ConsoleMock())
             {
                 mainVisitor.RunOnInput(testedStatement);
                 // Assert
@@ -120,7 +120,7 @@ namespace PythonInterpreter.Tests
             end
             ";
             // Act
-            using (var mock = new ConsoleMockHelper())
+            using (var mock = new ConsoleMock())
             {
                 mainVisitor.RunOnInput(testedStatement);
                 // Assert

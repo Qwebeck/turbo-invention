@@ -5,12 +5,12 @@ using System.Text;
 
 namespace PythonInterpreter.Tests.Helpers
 {
-    public class ConsoleMockHelper: IDisposable
+    public class ConsoleMock: IDisposable
     {
         private readonly StringWriter stringWriter;
         private readonly TextWriter originalTextWriter; 
         
-        public ConsoleMockHelper()
+        public ConsoleMock()
         {
             stringWriter = new StringWriter();
             originalTextWriter = Console.Out;
